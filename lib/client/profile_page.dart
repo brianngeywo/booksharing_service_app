@@ -1,7 +1,10 @@
 import 'package:booksharing_service_app/client/edit_account_page.dart';
+import 'package:booksharing_service_app/client/login.dart';
+import 'package:booksharing_service_app/client/spinning_widget.dart';
 import 'package:booksharing_service_app/models/book.dart';
 import 'package:booksharing_service_app/constants.dart';
 import 'package:booksharing_service_app/models/user_model.dart';
+import 'package:booksharing_service_app/services/auth_service.dart';
 import 'package:booksharing_service_app/services/book_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -23,18 +26,10 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   void _fetchUserDetails() async {
-    UserModel userDetails = await getUserDetails();
+    UserModel userDetails = await AuthService().getCurrentUser();
     setState(() {
       _user = userDetails;
     });
-  }
-
-  Future<UserModel> getUserDetails() async {
-    final userSnapshot = await FirebaseFirestore.instance
-        .collection('users')
-        .doc("6ffeb1ba-257f-46fb-a260-86334baef9a6")
-        .get();
-    return UserModel.fromMap(userSnapshot.data()!);
   }
 
   @override
@@ -44,17 +39,16 @@ class _ProfilePageState extends State<ProfilePage> {
         title: Text(
           'My Account',
           style: TextStyle(
-            fontSize: 22.0,
             fontWeight: FontWeight.bold,
-            color: textColor,
+            fontSize: 24.0,
           ),
         ),
       ),
       body: _user == null
-          ? const Center(
+          ? Center(
               child: Padding(
-              padding: EdgeInsets.all(8.0),
-              child: CircularProgressIndicator(),
+              padding: const EdgeInsets.all(8.0),
+              child: SpinningWidget(),
             ))
           : SingleChildScrollView(
               child: Column(
@@ -129,7 +123,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       padding: const EdgeInsets.all(16.0),
                       child: my_divider,
                     ),
-                    const SizedBox(height: 10),
+
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: Text(
@@ -142,6 +136,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                     ),
                     const SizedBox(height: 10),
+
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: Row(
@@ -180,41 +175,11 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                       ),
                     ),
+                    const SizedBox(height: 10),
                     Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: my_divider,
                     ),
-                    const SizedBox(height: 10),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: Text(
-                        'Social Media Profiles',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: textColor,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    // Social media links
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 20),
-                      child: Row(
-                        children: [
-                          Icon(Icons.facebook, size: 30),
-                          SizedBox(width: 10),
-                          Icon(Icons.add, size: 30),
-                          SizedBox(width: 10),
-                          Icon(Icons.g_translate, size: 30),
-                        ],
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: my_divider,
-                    ),
-                    const SizedBox(height: 10),
                     // Account settings
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -229,10 +194,12 @@ class _ProfilePageState extends State<ProfilePage> {
                               color: textColor,
                             ),
                           ),
-                          const SizedBox(height: 10),
-                          GestureDetector(
-                            onTap: () {
-                              // Handle password change
+                          const SizedBox(height: 20),
+                          MaterialButton(
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(5)),
+                            color: Colors.blue,
+                            onPressed: () {
                               Navigator.push(
                                   context,
                                   MaterialPageRoute(
@@ -243,31 +210,37 @@ class _ProfilePageState extends State<ProfilePage> {
                             child: const Text(
                               'Edit profile',
                               style: TextStyle(
-                                color: Colors.blue,
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
+                                color: Colors.white,
                               ),
                             ),
                           ),
                           // const SizedBox(height: 10),
-                          // GestureDetector(
-                          //   onTap: () {
-                          //     // Handle password change
-                          //     Navigator.push(
-                          //         context,
-                          //         MaterialPageRoute(
-                          //             builder: (context) =>
-                          //                 const PasswordChangePage()));
-                          //   },
-                          //   child: const Text(
-                          //     'Change password',
-                          //     style: TextStyle(
-                          //       color: Colors.blue,
-                          //       fontSize: 16,
-                          //       fontWeight: FontWeight.bold,
-                          //     ),
-                          //   ),
-                          // ),
+                          MaterialButton(
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(5)),
+                            color: Colors.red,
+                            onPressed: () async {
+                              await AuthService().logoutUser();
+                              Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          const LoginScreen()));
+                            },
+                            child: const Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: Text(
+                                'Sign out',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
                           const SizedBox(height: 10),
                         ],
                       ),
@@ -277,20 +250,13 @@ class _ProfilePageState extends State<ProfilePage> {
                       child: my_divider,
                     ),
                     const SizedBox(height: 10),
-                    ActivityFeed(),
+                    ActivityFeed(context),
                   ]),
             ),
     );
   }
-}
 
-class ActivityFeed extends StatelessWidget {
-  ActivityFeed({
-    Key? key,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
+  Widget ActivityFeed(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -325,11 +291,11 @@ class ActivityFeed extends StatelessWidget {
           ),
         ),
         FutureBuilder<List<Book>>(
-          future:
-              BookService().getBooks(), // Replace with your book fetching logic
+          future: BookService().getBooksByUserId(_user!.id),
+          // Replace with your book fetching logic
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const CircularProgressIndicator();
+              return SpinningWidget();
             } else if (snapshot.hasError) {
               return Text('Error: ${snapshot.error}');
             } else if (snapshot.hasData &&
@@ -350,12 +316,15 @@ class ActivityFeed extends StatelessWidget {
                       book.title,
                       style: const TextStyle(fontWeight: FontWeight.w700),
                     ),
-                    subtitle: Text('Uploaded by ${book.author}'),
+                    subtitle: Text('Uploaded by ${book.postedBy.name}'),
                   );
                 },
               );
             } else {
-              return const Text('No books found');
+              return Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: const Text('No books found'),
+              );
             }
           },
         ),

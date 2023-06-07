@@ -2,13 +2,9 @@ import 'dart:math';
 
 import 'package:booksharing_service_app/services/borrow_book_service.dart';
 import 'package:booksharing_service_app/models/book.dart';
-import 'package:booksharing_service_app/client/book_rating_dialog.dart';
 import 'package:booksharing_service_app/constants.dart';
-import 'package:booksharing_service_app/static_datas.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:uuid/uuid.dart';
 
 class BookReadingPage extends StatefulWidget {
   Book book;
@@ -92,7 +88,8 @@ class _BookReadingPageState extends State<BookReadingPage> {
         title: Text(
           widget.book.title,
           style: TextStyle(
-            color: textColor,
+            fontWeight: FontWeight.bold,
+            fontSize: 24.0,
           ),
         ),
         actions: [

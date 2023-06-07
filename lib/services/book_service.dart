@@ -21,6 +21,16 @@ class BookService {
     return Book.fromMap(doc.data() as Map<String, dynamic>? ?? {});
   }
 
+  Future<List<Book>> getBooksByUserId(String userId) async {
+    QuerySnapshot querySnapshot = await _booksRef
+        .where('postedBy.id', isEqualTo: userId)
+        .get(); // Modify the query to match the user ID
+    List<Book> books = querySnapshot.docs
+        .map((doc) => Book.fromMap(doc.data() as Map<String, dynamic>))
+        .toList();
+    return books;
+  }
+
   Future<List<Book>> getBooksByGenre(String genreId) async {
     QuerySnapshot querySnapshot =
         await _booksRef.where('genre.id', isEqualTo: genreId).get();

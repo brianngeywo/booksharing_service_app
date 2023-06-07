@@ -1,8 +1,6 @@
 import 'package:booksharing_service_app/models/book.dart';
 import 'package:booksharing_service_app/models/discussion_post_comment.dart';
-import 'package:booksharing_service_app/models/rating.dart';
 import 'package:booksharing_service_app/models/user_model.dart';
-import 'package:booksharing_service_app/static_datas.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -75,11 +73,9 @@ class UserService {
     }
   }
 
-  Future<void> saveComment(
-      DiscussionPostComment comment, Rating rating, Book book) async {
+  Future<void> saveComment(DiscussionPostComment comment, Book book) async {
     final commentData = {
       'comment': comment,
-      'rating': rating,
       'timestamp': DateTime.now(),
     };
 

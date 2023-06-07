@@ -1,6 +1,4 @@
-import 'package:booksharing_service_app/models/book.dart';
-import 'package:booksharing_service_app/models/discussion_post_comment.dart';
-import 'package:booksharing_service_app/models/rating.dart';
+import 'package:booksharing_service_app/models/user_model.dart';
 import 'package:booksharing_service_app/static_datas.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -12,56 +10,61 @@ class AuthService {
   final GoogleSignIn _googleSignIn = GoogleSignIn();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Register a new user with email and password
-  Future<String?> registerUser(String email, String password) async {
+  Future<void> signUpUser(
+    String name,
+    String email,
+    String password,
+    String coverImageUrl,
+    String profileImageUrl,
+    String phoneNumber,
+  ) async {
     try {
-      UserCredential userCredential = await _firebaseAuth
+      // Create a new user in Firebase Authentication
+      var userCredential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(email: email, password: password);
-      return userCredential.user?.uid;
+      String userId = userCredential.user!.uid;
+
+      UserModel user = UserModel(
+        id: userId,
+        name: name,
+        email: email,
+        phoneNumber: phoneNumber,
+        address: "",
+        bio: "",
+        profilePictureUrl: profileImageUrl,
+        coverImageUrl: coverImageUrl,
+        password: password,
+      );
+
+      // Create a new user document in Firestore
+      await _firestore.collection('users').doc(userId).set(
+            user.toMap(),
+          );
     } catch (e) {
-      print(e.toString());
-      return null;
+      // Handle sign-up error
+      print('Sign-up error: $e');
     }
   }
 
-  // Login with email and password
   Future<String?> loginUser(String email, String password) async {
     try {
-      UserCredential userCredential = await _firebaseAuth
-          .signInWithEmailAndPassword(email: email, password: password);
-      return userCredential.user?.uid;
-    } catch (e) {
-      print(e.toString());
-      return null;
-    }
-  }
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .where('email', isEqualTo: email)
+          .limit(1)
+          .get();
 
-  // Sign in with Google
-  Future<String?> signInWithGoogle() async {
-    try {
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser!.authentication;
-
-      // Obtain the Google Sign-In ID token and access token
-      final String? idToken = googleAuth.idToken;
-      final String? accessToken = googleAuth.accessToken;
-
-      if (idToken != null && accessToken != null) {
-        // Create a credential using the obtained ID token and access token
-        final OAuthCredential credential = GoogleAuthProvider.credential(
-          idToken: idToken,
-          accessToken: accessToken,
+      if (querySnapshot.size > 0) {
+        final user = querySnapshot.docs[0];
+        // Check if password matches or implement your desired authentication logic here
+        // For demonstration purposes, we assume the password matches
+        final userCredential = await _firebaseAuth.signInWithEmailAndPassword(
+          email: email,
+          password: password,
         );
-
-        // Sign in with the credential
-        final UserCredential userCredential =
-            await _firebaseAuth.signInWithCredential(credential);
         return userCredential.user?.uid;
       } else {
-        // Handle case where either ID token or access token is null
-        throw Exception(
-            'Failed to obtain Google Sign-In ID token or access token.');
+        return null; // User not found
       }
     } catch (e) {
       print(e.toString());
@@ -75,9 +78,32 @@ class AuthService {
     await _googleSignIn.signOut();
   }
 
-  // Get the currently logged-in user
-  User? getCurrentUser() {
-    return _firebaseAuth.currentUser;
+// Get the current user
+  Future<UserModel> getCurrentUser() async {
+    UserModel currentUser = UserModel(
+      id: '',
+      name: '',
+      email: '',
+      address: '',
+      phoneNumber: '',
+      bio: '',
+      profilePictureUrl: '',
+      coverImageUrl: '',
+      password: '',
+    );
+    User? firebaseUser = FirebaseAuth.instance.currentUser;
+    if (firebaseUser != null) {
+      DocumentSnapshot snapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(firebaseUser.uid)
+          .get();
+      if (snapshot.exists) {
+        UserModel user =
+            UserModel.fromMap(snapshot.data() as Map<String, dynamic>);
+        currentUser = user;
+      }
+    }
+    return currentUser;
   }
 
   // Check if a user is currently logged in

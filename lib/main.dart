@@ -1,5 +1,7 @@
 import 'package:booksharing_service_app/client/dashboard.dart';
 import 'package:booksharing_service_app/client/login.dart';
+import 'package:booksharing_service_app/client/signup.dart';
+import 'package:booksharing_service_app/constants.dart';
 import 'package:booksharing_service_app/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -21,11 +23,13 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark(
-          // primarySwatch: Colors.yellow,
-
-          ),
-      home: const Dashboard(),
+      theme: ThemeData.light().copyWith(
+        appBarTheme: AppBarTheme(
+          foregroundColor: Colors.white,
+          backgroundColor: textColor,
+        ),
+      ),
+      home: LoginScreen(),
     );
   }
 }

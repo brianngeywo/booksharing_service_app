@@ -1,10 +1,12 @@
 import 'dart:io';
 import 'dart:math';
 
+import 'package:booksharing_service_app/client/spinning_widget.dart';
 import 'package:booksharing_service_app/models/forum_question_comment.dart';
 import 'package:booksharing_service_app/models/book.dart';
 import 'package:booksharing_service_app/constants.dart';
 import 'package:booksharing_service_app/models/question.dart';
+import 'package:booksharing_service_app/services/auth_service.dart';
 import 'package:booksharing_service_app/services/forum_service.dart';
 import 'package:booksharing_service_app/static_datas.dart';
 import 'package:file_picker/file_picker.dart';
@@ -50,7 +52,10 @@ class _ForumQuestionViewState extends State<ForumQuestionView> {
       appBar: AppBar(
         title: Text(
           widget.question.title,
-          style: TextStyle(color: textColor),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 24.0,
+          ),
         ),
       ),
       body: Padding(
@@ -79,15 +84,17 @@ class _ForumQuestionViewState extends State<ForumQuestionView> {
               onSubmit: () {
                 if (_commentFormKey.currentState!.validate()) {
                   // Create a new Comment object
-                  ForumQuestionComment comment = ForumQuestionComment(
-                    id: const Uuid().v4(),
-                    comment: _commentTextController.text,
-                    postedBy: test_user,
-                  );
-                  ForumService().addForumComment(widget.question.id, comment);
-                  // Add the new comment to the list of forum_comments
-                  setState(() {
-                    _commentTextController.clear();
+                  AuthService().getCurrentUser().then((user) {
+                    ForumQuestionComment comment = ForumQuestionComment(
+                      id: const Uuid().v4(),
+                      comment: _commentTextController.text,
+                      postedBy: user, // Replace with the actual user name
+                    );
+                    ForumService().addForumComment(widget.question.id, comment);
+                    // Add the new comment to the list of forum_comments
+                    setState(() {
+                      _commentTextController.clear();
+                    });
                   });
                 }
               },
@@ -106,9 +113,7 @@ class _ForumQuestionViewState extends State<ForumQuestionView> {
             const SizedBox(height: 10),
             forumComments.isNotEmpty && forumComments != null
                 ? buildCommentsList()
-                : const Center(
-                    child: CircularProgressIndicator(),
-                  ),
+                : Center(child: SpinningWidget()),
           ],
         ),
       ),
@@ -156,7 +161,7 @@ class _ForumQuestionViewState extends State<ForumQuestionView> {
         } else if (snapshot.hasError) {
           return Text('Error: ${snapshot.error}');
         } else {
-          return CircularProgressIndicator();
+          return SpinningWidget();
         }
       },
     );

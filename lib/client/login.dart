@@ -1,9 +1,7 @@
 import 'package:booksharing_service_app/client/dashboard.dart';
+import 'package:booksharing_service_app/client/signup.dart';
 import 'package:booksharing_service_app/constants.dart';
-import 'package:booksharing_service_app/models/user_model.dart';
 import 'package:booksharing_service_app/services/auth_service.dart';
-import 'package:booksharing_service_app/static_datas.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import '../services/user_service.dart';
@@ -19,6 +17,22 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   String _email = "";
   String _password = "";
+
+  Future<void> _checkLoginStatus() async {
+    bool isLoggedIn = await AuthService().isLoggedIn();
+    if (isLoggedIn) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const Dashboard()),
+      );
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _checkLoginStatus();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +61,26 @@ class _LoginScreenState extends State<LoginScreen> {
                     fontStyle: FontStyle.italic,
                   ),
                 ),
-                const SizedBox(height: 50),
+                const SizedBox(height: 20),
+                Center(
+                  child: Text(
+                    'Log in',
+                    style: TextStyle(
+                      fontSize: 40.0,
+                      fontWeight: FontWeight.bold,
+                      color: textColor,
+                      letterSpacing: 2.0,
+                      shadows: [
+                        Shadow(
+                          offset: Offset(2.0, 2.0),
+                          blurRadius: 3.0,
+                          color: Colors.grey.withOpacity(0.5),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
                 TextFormField(
                   decoration: const InputDecoration(
                     hintText: "Email",
@@ -83,7 +116,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     _password = value!.trim();
                   },
                 ),
-                const SizedBox(height: 50),
+                const SizedBox(height: 30),
                 ElevatedButton(
                   style: ButtonStyle(
                     backgroundColor: MaterialStateProperty.all(textColor),
@@ -104,21 +137,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: TextStyle(color: Colors.black54),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: ElevatedButton(
-                    style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all(textColor),
-                    ),
-                    onPressed: () {
-                      AuthService().signInWithGoogle();
-                    },
-                    child: const Text(
-                      "Sign in with Google",
-                      style: TextStyle(color: Colors.black54),
-                    ),
-                  ),
-                ),
                 const Padding(
                   padding: EdgeInsets.all(8.0),
                   child: Text("Sign up"),
@@ -131,10 +149,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       backgroundColor: MaterialStateProperty.all(textColor),
                     ),
                     onPressed: () {
-                      AuthService().signInWithGoogle();
+                      Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context) => SignupScreen(),
+                      ));
                     },
                     child: const Text(
-                      "Sign up with Google",
+                      "Create Account",
                       style: TextStyle(color: Colors.black54),
                     ),
                   ),

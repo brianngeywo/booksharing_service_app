@@ -1,3 +1,4 @@
+import 'package:booksharing_service_app/client/spinning_widget.dart';
 import 'package:booksharing_service_app/models/book.dart';
 import 'package:booksharing_service_app/client/book_reading_page.dart';
 import 'package:booksharing_service_app/constants.dart';
@@ -40,10 +41,13 @@ class _BorrowingPageState extends State<BorrowingPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Search',
-            style: TextStyle(
-              color: textColor,
-            )),
+        title: Text(
+          'Search',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 24.0,
+          ),
+        ),
       ),
       body: StreamBuilder<List<Book>>(
         stream: BookService().getBooks().asStream(),
@@ -107,7 +111,7 @@ class _BorrowingPageState extends State<BorrowingPage> {
           } else if (snapshot.hasError) {
             return Text('Error: ${snapshot.error}');
           } else {
-            return CircularProgressIndicator();
+            return SpinningWidget();
           }
         },
       ),

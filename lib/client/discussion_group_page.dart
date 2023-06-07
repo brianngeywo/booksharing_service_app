@@ -2,10 +2,12 @@ import 'dart:math';
 
 import 'package:booksharing_service_app/client/book_reading_page.dart';
 import 'package:booksharing_service_app/client/discussion_post_details.dart';
+import 'package:booksharing_service_app/client/spinning_widget.dart';
 import 'package:booksharing_service_app/constants.dart';
 import 'package:booksharing_service_app/models/book.dart';
 import 'package:booksharing_service_app/models/discussion_post.dart';
 import 'package:booksharing_service_app/models/genre.dart';
+import 'package:booksharing_service_app/services/auth_service.dart';
 import 'package:booksharing_service_app/services/book_service.dart';
 import 'package:booksharing_service_app/services/discussion_group_service.dart';
 import 'package:booksharing_service_app/static_datas.dart';
@@ -39,7 +41,8 @@ class _DiscussionGroupPageState extends State<DiscussionGroupPage> {
         title: Text(
           '${widget.genre.name} Discussion Group',
           style: TextStyle(
-            color: textColor,
+            fontWeight: FontWeight.bold,
+            fontSize: 24.0,
           ),
         ),
       ),
@@ -58,9 +61,9 @@ class _DiscussionGroupPageState extends State<DiscussionGroupPage> {
                 color: textColor,
               ),
             ),
-            const SizedBox(height: 16.0),
+            const SizedBox(height: 10.0),
             _buildBookRecommendationsList(),
-            const SizedBox(height: 16.0),
+            const SizedBox(height: 8.0),
             Text(
               "Latest Posts",
               textAlign: TextAlign.start,
@@ -72,6 +75,7 @@ class _DiscussionGroupPageState extends State<DiscussionGroupPage> {
             ),
             const SizedBox(height: 16.0),
             _buildPostList(),
+            const SizedBox(height: 16.0),
           ],
         ),
       ),
@@ -80,7 +84,7 @@ class _DiscussionGroupPageState extends State<DiscussionGroupPage> {
 
   Widget _buildBookRecommendationsList() {
     return Container(
-      height: 200.0,
+      height: 180.0,
       child: FutureBuilder<List<Book>>(
         future: BookService().getBooksByGenre(widget.genre.id),
         builder: (context, snapshot) {
@@ -138,7 +142,7 @@ class _DiscussionGroupPageState extends State<DiscussionGroupPage> {
           } else if (snapshot.hasError) {
             return Text("Error: ${snapshot.error}");
           } else {
-            return Center(child: CircularProgressIndicator());
+            return Center(child: SpinningWidget());
           }
         },
       ),
@@ -204,27 +208,29 @@ class _DiscussionGroupPageState extends State<DiscussionGroupPage> {
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
                     _formKey.currentState!.save();
-                    DiscussionPost my_post = DiscussionPost(
-                      id: const Uuid().v4(),
-                      title: _title,
-                      author: test_user,
-                      content: _body,
-                      date: DateTime.now(),
-                      comments: [],
-                      genre: widget.genre,
-                    );
-                    // TODO: Handle post creation.
-                    DiscussionGroupService().addDiscussionPost(my_post);
-                    setState(() {
-                      _title = '';
-                      _body = '';
-                      _formKey.currentState?.reset();
+                    AuthService().getCurrentUser().then((user) {
+                      DiscussionPost myPost = DiscussionPost(
+                        id: const Uuid().v4(),
+                        title: _title,
+                        author: user, // Replace with the actual user name
+                        content: _body,
+                        date: DateTime.now(),
+                        comments: [],
+                        genre: widget.genre,
+                      );
+                      // TODO: Handle post creation.
+                      DiscussionGroupService().addDiscussionPost(myPost);
+                      setState(() {
+                        _title = '';
+                        _body = '';
+                        _formKey.currentState?.reset();
+                      });
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Post created successfully!'),
+                        ),
+                      );
                     });
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Post created successfully!'),
-                      ),
-                    );
                   }
                 },
                 child: const Text(
@@ -277,7 +283,7 @@ class _DiscussionGroupPageState extends State<DiscussionGroupPage> {
           } else if (snapshot.hasError) {
             return Text("Error: ${snapshot.error}");
           } else {
-            return Center(child: CircularProgressIndicator());
+            return Center(child: SpinningWidget());
           }
         });
   }

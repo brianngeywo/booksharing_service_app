@@ -54,8 +54,8 @@ class _EditAccountPageState extends State<EditAccountPage> {
         title: Text(
           'Edit Account Details',
           style: TextStyle(
-            color: textColor,
             fontWeight: FontWeight.bold,
+            fontSize: 24.0,
           ),
         ),
       ),
@@ -142,7 +142,7 @@ class _EditAccountPageState extends State<EditAccountPage> {
   }
 
   Future<String> _uploadImageToStorage(File file) async {
-    final imageUrl = await FirebaseStorageService.uploadFile(file);
+    final imageUrl = await FirebaseStorageService.uploadToStorage(file);
     return imageUrl;
   }
 
@@ -174,8 +174,8 @@ class _EditAccountPageState extends State<EditAccountPage> {
       address: newAddress,
       coverImageUrl: widget.user.coverImageUrl,
       profilePictureUrl: widget.user.profilePictureUrl,
-      isAdmin: false,
       bio: newBio,
+      password: widget.user.password,
     );
 
     // Save the changes to the user object or update it in the firestore database

@@ -1,5 +1,4 @@
 import 'package:booksharing_service_app/models/genre.dart';
-import 'package:booksharing_service_app/models/rating.dart';
 import 'package:booksharing_service_app/models/user_model.dart';
 
 class Book {
@@ -10,12 +9,10 @@ class Book {
   String description;
   String coverUrl;
   UserModel postedBy;
-  List<Rating> ratings;
   List<UserModel> allowedUsers;
   String? fileUrl;
 
   Book({
-    required this.ratings,
     required this.id,
     required this.title,
     required this.author,
@@ -34,9 +31,6 @@ class Book {
         description = map['description'],
         coverUrl = map['coverUrl'],
         postedBy = UserModel.fromMap(map['postedBy']),
-        ratings = (map['ratings'] as List<dynamic>)
-            .map((rating) => Rating.fromMap(rating))
-            .toList(),
         allowedUsers = (map['allowedUsers'] as List<dynamic>)
             .map((user) => UserModel.fromMap(user))
             .toList(),
@@ -50,7 +44,6 @@ class Book {
         'description': description,
         'coverUrl': coverUrl,
         'postedBy': postedBy.toMap(),
-        'ratings': ratings.map((rating) => rating.toMap()).toList(),
         'allowedUsers': allowedUsers.map((user) => user.toMap()).toList(),
         'fileUrl': fileUrl,
       };

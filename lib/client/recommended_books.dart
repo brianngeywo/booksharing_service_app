@@ -1,5 +1,6 @@
 import 'package:booksharing_service_app/client/book_card.dart';
 import 'package:booksharing_service_app/client/book_reading_page.dart';
+import 'package:booksharing_service_app/client/spinning_widget.dart';
 import 'package:booksharing_service_app/constants.dart';
 import 'package:booksharing_service_app/models/book.dart';
 import 'package:booksharing_service_app/services/book_service.dart';
@@ -15,9 +16,8 @@ class RecommendedBooks extends StatelessWidget {
         title: Text(
           'Recommended Books',
           style: TextStyle(
-            fontSize: 22.0,
             fontWeight: FontWeight.bold,
-            color: textColor,
+            fontSize: 24.0,
           ),
         ),
       ),
@@ -25,8 +25,8 @@ class RecommendedBooks extends StatelessWidget {
         future: BookService().getBooks(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
+            return Center(
+              child: SpinningWidget(),
             );
           }
           if (snapshot.hasError) {

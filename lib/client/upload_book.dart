@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:booksharing_service_app/models/book.dart';
 import 'package:booksharing_service_app/models/user_model.dart';
+import 'package:booksharing_service_app/services/auth_service.dart';
 import 'package:booksharing_service_app/services/book_service.dart';
 import 'package:booksharing_service_app/constants.dart';
 import 'package:booksharing_service_app/models/genre.dart';
@@ -34,7 +35,7 @@ class _UploadBookPageState extends State<UploadBookPage> {
   @override
   void initState() {
     super.initState();
-    _genre = test_genres[0];
+    _genre = genres[0];
     _title = "";
     _author = "";
     _abstract = "";
@@ -63,7 +64,7 @@ class _UploadBookPageState extends State<UploadBookPage> {
       final file = File(pickedFile.path);
 
       try {
-        final imageUrl = await FirebaseStorageService.uploadFile(file);
+        final imageUrl = await FirebaseStorageService.uploadToStorage(file);
         setState(() {
           _coverImageUrl = imageUrl;
         });
@@ -91,8 +92,7 @@ class _UploadBookPageState extends State<UploadBookPage> {
         title: _title,
         author: _author,
         genre: _genre,
-        postedBy: test_user,
-        ratings: [],
+        postedBy: await AuthService().getCurrentUser(),
         description: _abstract,
         coverUrl: _coverImageUrl,
         allowedUsers: [],
@@ -103,7 +103,7 @@ class _UploadBookPageState extends State<UploadBookPage> {
       if (_fileUrl != null) {
         File file = File(_fileUrl!);
         try {
-          String fileUrl = await FirebaseStorageService.uploadFile(file);
+          String fileUrl = await FirebaseStorageService.uploadToStorage(file);
           book.fileUrl = fileUrl;
         } catch (e) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -136,7 +136,8 @@ class _UploadBookPageState extends State<UploadBookPage> {
         title: Text(
           'Upload a Book',
           style: TextStyle(
-            color: textColor,
+            fontWeight: FontWeight.bold,
+            fontSize: 24.0,
           ),
         ),
       ),
@@ -186,7 +187,7 @@ class _UploadBookPageState extends State<UploadBookPage> {
                       _genre = value!;
                     });
                   },
-                  items: test_genres.map((genre) {
+                  items: genres.map((genre) {
                     return DropdownMenuItem<Genre>(
                       value: genre,
                       child: Text(genre.name),

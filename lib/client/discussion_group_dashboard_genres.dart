@@ -19,9 +19,8 @@ class _DiscussionGroupDashboardState extends State<DiscussionGroupDashboard> {
         title: Text(
           'Discussion groups',
           style: TextStyle(
-            fontSize: 22.0,
             fontWeight: FontWeight.bold,
-            color: textColor,
+            fontSize: 24.0,
           ),
         ),
       ),
@@ -34,7 +33,7 @@ class _DiscussionGroupDashboardState extends State<DiscussionGroupDashboard> {
               crossAxisCount: 2,
               physics: const NeverScrollableScrollPhysics(),
               shrinkWrap: true,
-              children: test_genres
+              children: genres
                   .map(
                     (e) => GestureDetector(
                       onTap: () => Navigator.push(
@@ -58,7 +57,7 @@ class _DiscussionGroupDashboardState extends State<DiscussionGroupDashboard> {
                                   image: NetworkImage(e.image_url),
                                   fit: BoxFit.cover,
                                   colorFilter: ColorFilter.mode(
-                                    Colors.black.withOpacity(0.5),
+                                    Colors.black.withOpacity(0.7),
                                     BlendMode.darken,
                                   ),
                                 ),

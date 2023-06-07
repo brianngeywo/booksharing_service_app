@@ -1,9 +1,11 @@
 import 'dart:math';
 
 import 'package:booksharing_service_app/client/forum_question_view.dart';
+import 'package:booksharing_service_app/client/spinning_widget.dart';
 import 'package:booksharing_service_app/models/book.dart';
 import 'package:booksharing_service_app/constants.dart';
 import 'package:booksharing_service_app/models/question.dart';
+import 'package:booksharing_service_app/services/auth_service.dart';
 import 'package:booksharing_service_app/services/book_service.dart';
 import 'package:booksharing_service_app/services/forum_service.dart';
 import 'package:booksharing_service_app/static_datas.dart';
@@ -45,7 +47,8 @@ class _ForumHomePageState extends State<ForumHomePage> {
         title: Text(
           'Forum HomePage',
           style: TextStyle(
-            color: textColor,
+            fontWeight: FontWeight.bold,
+            fontSize: 24.0,
           ),
         ),
       ),
@@ -110,7 +113,7 @@ class _ForumHomePageState extends State<ForumHomePage> {
                           title: _questionTitle!,
                           body: _questionBody!,
                           attachedBook: _attachedBook,
-                          postedBy: test_user,
+                          postedBy: await AuthService().getCurrentUser(),
                           forumComments: [],
                           timeUploaded: DateTime.now(),
                         );
@@ -237,7 +240,7 @@ class _ForumHomePageState extends State<ForumHomePage> {
             } else if (snapshot.hasError) {
               return Text('Error: ${snapshot.error}');
             } else {
-              return CircularProgressIndicator();
+              return SpinningWidget();
             }
           },
         ),

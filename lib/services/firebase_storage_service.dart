@@ -1,10 +1,22 @@
 import 'dart:io';
 
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class FirebaseStorageService {
-  static Future<String> uploadFile(File file) async {
+  Future<String> uploadImageToStorage(File imageFile, String path) async {
+    final storageReference = FirebaseStorage.instance.ref().child(path);
+    final uploadTask = storageReference.putFile(imageFile);
+    final snapshot = await uploadTask.whenComplete(() {});
+    if (snapshot.state == TaskState.success) {
+      final downloadURL = await snapshot.ref.getDownloadURL();
+      return downloadURL;
+    }
+    throw Exception('Image upload failed');
+  }
+
+  static Future<String> uploadToStorage(File file) async {
     final storageRef = FirebaseStorage.instance
         .ref()
         .child('book_covers')
