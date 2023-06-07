@@ -3,9 +3,12 @@ import 'dart:math';
 import 'package:booksharing_service_app/client/book_reading_page.dart';
 import 'package:booksharing_service_app/client/discussion_post_details.dart';
 import 'package:booksharing_service_app/constants.dart';
+import 'package:booksharing_service_app/models/book.dart';
 import 'package:booksharing_service_app/models/discussion_post.dart';
 import 'package:booksharing_service_app/models/genre.dart';
-import 'package:booksharing_service_app/test_datas.dart';
+import 'package:booksharing_service_app/services/book_service.dart';
+import 'package:booksharing_service_app/services/discussion_group_service.dart';
+import 'package:booksharing_service_app/static_datas.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
@@ -22,6 +25,13 @@ class _DiscussionGroupPageState extends State<DiscussionGroupPage> {
   final _formKey = GlobalKey<FormState>();
   late String _title;
   late String _body;
+  List<DiscussionPost> discussionPosts = [];
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -70,58 +80,66 @@ class _DiscussionGroupPageState extends State<DiscussionGroupPage> {
 
   Widget _buildBookRecommendationsList() {
     return Container(
-      height: 200.0, // Set the height of the container
-      child: ListView.builder(
-        // physics: NeverScrollableScrollPhysics(),
-        scrollDirection:
-            Axis.horizontal, // Set the scroll direction to horizontal
-        itemCount: test_books
-            .length, // Replace this with the number of recommended books
-        itemBuilder: (context, index) {
-          // Replace these dummy data with the actual book data
-
-          return Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: GestureDetector(
-              onTap: () {
-                // Navigate to the book details page
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) =>
-                            BookReadingPage(book: test_books[index])));
+      height: 200.0,
+      child: FutureBuilder<List<Book>>(
+        future: BookService().getBooksByGenre(widget.genre.id),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            List<Book> recommendedBooks = snapshot.data!;
+            return ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: recommendedBooks.length,
+              itemBuilder: (context, index) {
+                Book book = recommendedBooks[index];
+                return Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => BookReadingPage(book: book),
+                        ),
+                      );
+                    },
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8.0),
+                          child: Image.network(
+                            book.coverUrl,
+                            height: 120.0,
+                            width: 80.0,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        const SizedBox(height: 8.0),
+                        Text(
+                          book.title,
+                          style: const TextStyle(
+                            fontSize: 16.0,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          book.author,
+                          style: const TextStyle(
+                            fontSize: 14.0,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
               },
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8.0),
-                    child: Image.network(
-                      test_books[index].coverUrl,
-                      height: 120.0,
-                      width: 80.0,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  const SizedBox(height: 8.0),
-                  Text(
-                    test_books[index].title,
-                    style: const TextStyle(
-                      fontSize: 16.0,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    test_books[index].author,
-                    style: const TextStyle(
-                      fontSize: 14.0,
-                      color: Colors.grey,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
+            );
+          } else if (snapshot.hasError) {
+            return Text("Error: ${snapshot.error}");
+          } else {
+            return Center(child: CircularProgressIndicator());
+          }
         },
       ),
     );
@@ -189,15 +207,24 @@ class _DiscussionGroupPageState extends State<DiscussionGroupPage> {
                     DiscussionPost my_post = DiscussionPost(
                       id: const Uuid().v4(),
                       title: _title,
-                      author: test_users[Random().nextInt(test_users.length)],
+                      author: test_user,
                       content: _body,
                       date: DateTime.now(),
                       comments: [],
+                      genre: widget.genre,
                     );
                     // TODO: Handle post creation.
+                    DiscussionGroupService().addDiscussionPost(my_post);
                     setState(() {
-                      test_discussion_posts.add(my_post);
+                      _title = '';
+                      _body = '';
+                      _formKey.currentState?.reset();
                     });
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Post created successfully!'),
+                      ),
+                    );
                   }
                 },
                 child: const Text(
@@ -213,31 +240,45 @@ class _DiscussionGroupPageState extends State<DiscussionGroupPage> {
   }
 
   Widget _buildPostList() {
-    return ListView.builder(
-      physics: const NeverScrollableScrollPhysics(),
-      shrinkWrap: true,
-      itemCount: test_discussion_posts.length,
-      itemBuilder: (BuildContext context, int index) {
-        DiscussionPost post = test_discussion_posts[index];
-        return Card(
-          margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          child: ListTile(
-            title: Text(post.title),
-            subtitle: Text(post.author.name),
-            trailing:
-                Text('${post.date.month}/${post.date.day}/${post.date.year}'),
-            onTap: () {
-              // TODO: Navigate to post details page.
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => PostDetailsPage(
-                            post: post,
-                          )));
-            },
-          ),
-        );
-      },
-    );
+    return StreamBuilder<Object>(
+        stream: DiscussionGroupService()
+            .fetchDiscussionPostsByGenre(widget.genre)
+            .asStream(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            discussionPosts = snapshot.data as List<DiscussionPost>;
+            return ListView.builder(
+              physics: const NeverScrollableScrollPhysics(),
+              shrinkWrap: true,
+              itemCount: discussionPosts.length,
+              itemBuilder: (BuildContext context, int index) {
+                DiscussionPost post = discussionPosts[index];
+                return Card(
+                  margin: const EdgeInsets.symmetric(
+                      horizontal: 16.0, vertical: 8.0),
+                  child: ListTile(
+                    title: Text(post.title),
+                    subtitle: Text(post.author.name),
+                    trailing: Text(
+                        '${post.date.month}/${post.date.day}/${post.date.year}'),
+                    onTap: () {
+                      // TODO: Navigate to post details page.
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => PostDetailsPage(
+                                    post: post,
+                                  )));
+                    },
+                  ),
+                );
+              },
+            );
+          } else if (snapshot.hasError) {
+            return Text("Error: ${snapshot.error}");
+          } else {
+            return Center(child: CircularProgressIndicator());
+          }
+        });
   }
 }

@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:booksharing_service_app/models/comment.dart';
+import 'package:booksharing_service_app/models/discussion_post_comment.dart';
 import 'package:booksharing_service_app/models/rating.dart';
 
 class BookRatingsManager {
@@ -8,19 +8,20 @@ class BookRatingsManager {
       StreamController<List<Rating>>.broadcast();
   Stream<List<Rating>> get ratingsStream => _ratingsController.stream;
 
-  StreamController<List<Comment>> _commentsController =
-      StreamController<List<Comment>>.broadcast();
-  Stream<List<Comment>> get commentsStream => _commentsController.stream;
+  StreamController<List<DiscussionPostComment>> _commentsController =
+      StreamController<List<DiscussionPostComment>>.broadcast();
+  Stream<List<DiscussionPostComment>> get commentsStream =>
+      _commentsController.stream;
 
   List<Rating> _ratings = [];
-  List<Comment> _comments = [];
+  List<DiscussionPostComment> _comments = [];
 
   void addRating(Rating rating) {
     _ratings.add(rating);
     _ratingsController.add(_ratings);
   }
 
-  void addComment(Comment comment) {
+  void addComment(DiscussionPostComment comment) {
     _comments.add(comment);
     _commentsController.add(_comments);
   }

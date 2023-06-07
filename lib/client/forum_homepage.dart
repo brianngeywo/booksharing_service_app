@@ -4,7 +4,9 @@ import 'package:booksharing_service_app/client/forum_question_view.dart';
 import 'package:booksharing_service_app/models/book.dart';
 import 'package:booksharing_service_app/constants.dart';
 import 'package:booksharing_service_app/models/question.dart';
-import 'package:booksharing_service_app/test_datas.dart';
+import 'package:booksharing_service_app/services/book_service.dart';
+import 'package:booksharing_service_app/services/forum_service.dart';
+import 'package:booksharing_service_app/static_datas.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
@@ -17,10 +19,24 @@ class ForumHomePage extends StatefulWidget {
 
 class _ForumHomePageState extends State<ForumHomePage> {
   final _formKey = GlobalKey<FormState>();
-
-  late String? _questionTitle;
-  late String? _questionBody;
+  List<Question> questions = [];
+  String? _questionTitle = "";
+  String? _questionBody = "";
   Book? _attachedBook;
+  @override
+  void initState() {
+    super.initState();
+    fetchQuestions();
+  }
+
+  Future<void> fetchQuestions() async {
+    try {
+      questions = await ForumService().fetchForumQuestions();
+      setState(() {});
+    } catch (e) {
+      print('Failed to fetch questions: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -94,16 +110,11 @@ class _ForumHomePageState extends State<ForumHomePage> {
                           title: _questionTitle!,
                           body: _questionBody!,
                           attachedBook: _attachedBook,
-                          postedBy: test_users[0],
-                          upvotes: [],
-                          downvotes: [],
+                          postedBy: test_user,
+                          forumComments: [],
                           timeUploaded: DateTime.now(),
                         );
-
-                        // Call the onQuestionPosted function and pass in the new question object
-                        setState(() {
-                          test_questions.add(question);
-                        });
+                        ForumService().addForumQuestion(question);
 
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
@@ -115,9 +126,12 @@ class _ForumHomePageState extends State<ForumHomePage> {
                             duration: Duration(seconds: 3),
                           ),
                         );
-
-                        // Navigate back to the previous screen
-                        Navigator.pop(context);
+                        setState(() {
+                          _questionTitle = "";
+                          _questionBody = "";
+                          _attachedBook = null;
+                          _formKey.currentState!.reset();
+                        });
                       }
                     },
                     child: const Text(
@@ -130,84 +144,101 @@ class _ForumHomePageState extends State<ForumHomePage> {
             ),
           ),
         ),
-        ListView.builder(
-          physics: const NeverScrollableScrollPhysics(),
-          shrinkWrap: true,
-          itemCount: test_questions.length,
-          itemBuilder: (context, index) {
-            Question question = test_questions[index];
+        StreamBuilder<List<Question>>(
+          stream: ForumService().fetchForumQuestions().asStream(),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              final questions = snapshot.data!;
+              return ListView.builder(
+                physics: const NeverScrollableScrollPhysics(),
+                shrinkWrap: true,
+                itemCount: questions.length,
+                itemBuilder: (context, index) {
+                  Question question = questions[index];
 
-            return GestureDetector(
-              onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) =>
-                          ForumQuestionView(question: question))),
-              child: Card(
-                elevation: 10,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(7)),
-                margin: const EdgeInsets.symmetric(
-                    vertical: 10.0, horizontal: 20.0),
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        question.title,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                  return GestureDetector(
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            ForumQuestionView(question: question),
+                      ),
+                    ),
+                    child: Card(
+                      elevation: 10,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(7),
+                      ),
+                      margin: const EdgeInsets.symmetric(
+                        vertical: 10.0,
+                        horizontal: 20.0,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(20.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              question.title,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.person,
+                                  size: 15,
+                                  color: Colors.grey,
+                                ),
+                                const SizedBox(width: 5),
+                                Text(
+                                  question.postedBy.name,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                const Icon(
+                                  Icons.access_time,
+                                  size: 15,
+                                  color: Colors.grey,
+                                ),
+                                const SizedBox(width: 5),
+                                Text(
+                                  formatter.format(question.timeUploaded),
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              question.body,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey,
+                              ),
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 10),
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.person,
-                            size: 15,
-                            color: Colors.grey,
-                          ),
-                          const SizedBox(width: 5),
-                          Text(
-                            question.postedBy.name,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey,
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          const Icon(
-                            Icons.access_time,
-                            size: 15,
-                            color: Colors.grey,
-                          ),
-                          const SizedBox(width: 5),
-                          Text(
-                            formatter.format(question.timeUploaded),
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        question.body,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey,
-                        ),
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
+                    ),
+                  );
+                },
+              );
+            } else if (snapshot.hasError) {
+              return Text('Error: ${snapshot.error}');
+            } else {
+              return CircularProgressIndicator();
+            }
           },
         ),
       ]),
@@ -216,7 +247,9 @@ class _ForumHomePageState extends State<ForumHomePage> {
 }
 
 Future<Book?> showBookSelectionDialog(BuildContext context) async {
-  final books = test_books; // Fetch list of books from server
+  // Fetch list of books from Firestore
+  List<Book> books = await BookService().getBooks();
+
   return showDialog<Book>(
     context: context,
     builder: (context) => AlertDialog(

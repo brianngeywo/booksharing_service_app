@@ -1,7 +1,8 @@
 import 'package:booksharing_service_app/models/book.dart';
 import 'package:booksharing_service_app/client/book_reading_page.dart';
 import 'package:booksharing_service_app/constants.dart';
-import 'package:booksharing_service_app/test_datas.dart';
+import 'package:booksharing_service_app/services/book_service.dart';
+import 'package:booksharing_service_app/static_datas.dart';
 import 'package:flutter/material.dart';
 
 class BorrowingPage extends StatefulWidget {
@@ -19,19 +20,20 @@ class _BorrowingPageState extends State<BorrowingPage> {
 
   @override
   void initState() {
-    _filteredBooks = List.from(test_books);
     super.initState();
+    fetchBooks();
   }
 
-  void _onBookSelected(Book book) {
-    setState(() {
-      _selectedBook = book;
-    });
-  }
-
-  void _requestBookAccess() {
-    // Code to request book access
-    // This function can be triggered by a button press
+  Future<void> fetchBooks() async {
+    try {
+      final List<Book> books = await BookService().getBooks();
+      setState(() {
+        _filteredBooks = books;
+      });
+    } catch (e) {
+      print('Failed to fetch books: $e');
+      // Handle error
+    }
   }
 
   @override
@@ -43,57 +45,71 @@ class _BorrowingPageState extends State<BorrowingPage> {
               color: textColor,
             )),
       ),
-      body: ListView(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Search for a book',
-                prefixIcon: Icon(
-                  Icons.search,
-                  color: textColor,
+      body: StreamBuilder<List<Book>>(
+        stream: BookService().getBooks().asStream(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            final books = snapshot.data!;
+            return ListView(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  child: TextField(
+                    decoration: InputDecoration(
+                      hintText: 'Search for a book',
+                      prefixIcon: Icon(
+                        Icons.search,
+                        color: textColor,
+                      ),
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        _filteredBooks = books
+                            .where((book) =>
+                                book.title
+                                    .toLowerCase()
+                                    .contains(value.toLowerCase()) ||
+                                book.genre.name
+                                    .toLowerCase()
+                                    .contains(value.toLowerCase()) ||
+                                book.author
+                                    .toLowerCase()
+                                    .contains(value.toLowerCase()))
+                            .toList();
+                      });
+                    },
+                  ),
                 ),
-              ),
-              onChanged: (value) {
-                setState(() {
-                  _filteredBooks = test_books
-                      .where((book) =>
-                          book.title
-                              .toLowerCase()
-                              .contains(value.toLowerCase()) ||
-                          book.genre.name
-                              .toLowerCase()
-                              .contains(value.toLowerCase()) ||
-                          book.author
-                              .toLowerCase()
-                              .contains(value.toLowerCase()))
-                      .toList();
-                });
-              },
-            ),
-          ),
-          ListView.builder(
-            physics: const NeverScrollableScrollPhysics(),
-            shrinkWrap: true,
-            itemCount: _filteredBooks.length,
-            itemBuilder: (context, index) {
-              final book = _filteredBooks[index];
-              return Container(
-                margin: const EdgeInsets.all(8.0),
-                child: ListTile(
-                  leading: Image.network(book.coverUrl),
-                  title: Text(book.title),
-                  subtitle: Text(book.author),
-                  onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => BookReadingPage(book: book))),
+                ListView.builder(
+                  physics: const NeverScrollableScrollPhysics(),
+                  shrinkWrap: true,
+                  itemCount: _filteredBooks.length,
+                  itemBuilder: (context, index) {
+                    final book = _filteredBooks[index];
+                    return Container(
+                      margin: const EdgeInsets.all(8.0),
+                      child: ListTile(
+                        leading: Image.network(book.coverUrl),
+                        title: Text(book.title),
+                        subtitle: Text(book.author),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  BookReadingPage(book: book)),
+                        ),
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
-          ),
-        ],
+              ],
+            );
+          } else if (snapshot.hasError) {
+            return Text('Error: ${snapshot.error}');
+          } else {
+            return CircularProgressIndicator();
+          }
+        },
       ),
     );
   }

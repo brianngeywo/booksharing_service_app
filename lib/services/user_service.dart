@@ -1,7 +1,8 @@
 import 'package:booksharing_service_app/models/book.dart';
-import 'package:booksharing_service_app/models/comment.dart';
+import 'package:booksharing_service_app/models/discussion_post_comment.dart';
 import 'package:booksharing_service_app/models/rating.dart';
-import 'package:booksharing_service_app/test_datas.dart';
+import 'package:booksharing_service_app/models/user_model.dart';
+import 'package:booksharing_service_app/static_datas.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -24,13 +25,15 @@ class UserService {
     }
   }
 
-  Future<List<Map<String, dynamic>>> getAllUsers() async {
+  Future<List<UserModel>> getAllUsers() async {
     final QuerySnapshot querySnapshot =
         await _firestore.collection('users').get();
 
-    final List<Map<String, dynamic>> users = [];
+    final List<UserModel> users = [];
     querySnapshot.docs.forEach((documentSnapshot) {
-      users.add(documentSnapshot.data() as Map<String, dynamic>);
+      final userData = documentSnapshot.data() as Map<String, dynamic>;
+      final user = UserModel.fromMap(userData);
+      users.add(user);
     });
 
     return users;
@@ -72,7 +75,8 @@ class UserService {
     }
   }
 
-  Future<void> saveComment(Comment comment, Rating rating, Book book) async {
+  Future<void> saveComment(
+      DiscussionPostComment comment, Rating rating, Book book) async {
     final commentData = {
       'comment': comment,
       'rating': rating,

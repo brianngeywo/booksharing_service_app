@@ -6,15 +6,14 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'book_card.dart';
+
 class MyBooksPage extends StatefulWidget {
   @override
   _MyBooksPageState createState() => _MyBooksPageState();
 }
 
 class _MyBooksPageState extends State<MyBooksPage> {
-  bool _isUploadedExpanded = false;
-  bool _isBorrowedExpanded = true;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -26,71 +25,31 @@ class _MyBooksPageState extends State<MyBooksPage> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            ExpansionPanelList(
-              expansionCallback: (int index, bool isExpanded) {
-                setState(() {
-                  _isUploadedExpanded = !_isUploadedExpanded;
-                });
-              },
-              children: [
-                ExpansionPanel(
-                  headerBuilder: (BuildContext context, bool isExpanded) {
-                    return ListTile(
-                      leading: Icon(
-                        Icons.library_books,
-                        color: textColor,
-                      ),
-                      title: Text(
-                        'Uploaded Books',
-                        style: TextStyle(
-                          color: textColor,
-                        ),
-                      ),
-                    );
-                  },
-                  body: FutureBuilder<List<Book>>(
-                    future: BookService().getBooks(),
-                    builder: (context, snapshot) {
-                      if (snapshot.hasData) {
-                        final uploadedBooks = snapshot.data!;
-                        return SingleChildScrollView(
-                          child: Column(
-                            children: uploadedBooks.map((book) {
-                              return ListTile(
-                                leading: ClipRRect(
-                                  child: Image.network(
-                                    book.coverUrl,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                                title: Text(book.title),
-                                subtitle: Text(book.author),
-                                onTap: () {
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) =>
-                                              BookReadingPage(book: book)));
-                                },
-                              );
-                            }).toList(),
-                          ),
-                        );
-                      } else if (snapshot.hasError) {
-                        return Text('Error fetching books: ${snapshot.error}');
-                      }
-                      return CircularProgressIndicator(); // Show a loading indicator while fetching data
+      body: Center(
+        child: FutureBuilder<List<Book>>(
+          future: BookService().getBooks(),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              final uploadedBooks = snapshot.data!;
+              return ListView(
+                children: uploadedBooks.map((book) {
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  BookReadingPage(book: book)));
                     },
-                  ),
-                  isExpanded: _isUploadedExpanded,
-                ),
-              ],
-            ),
-            // ... Remaining code for borrowed books expansion panel ...
-          ],
+                    child: BookCard(book: book),
+                  );
+                }).toList(),
+              );
+            } else if (snapshot.hasError) {
+              return Text('Error fetching books: ${snapshot.error}');
+            }
+            return CircularProgressIndicator(); // Show a loading indicator while fetching data
+          },
         ),
       ),
     );

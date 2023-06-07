@@ -6,7 +6,9 @@ import 'package:booksharing_service_app/client/my_books_page.dart';
 import 'package:booksharing_service_app/client/notifications_screen.dart';
 import 'package:booksharing_service_app/client/profile_page.dart';
 import 'package:booksharing_service_app/client/recommended_books.dart';
-import 'package:booksharing_service_app/test_datas.dart';
+import 'package:booksharing_service_app/models/book.dart';
+import 'package:booksharing_service_app/services/book_service.dart';
+import 'package:booksharing_service_app/static_datas.dart';
 import 'package:booksharing_service_app/client/upload_book.dart';
 import 'package:flutter/material.dart';
 
@@ -30,19 +32,19 @@ class _DashboardState extends State<Dashboard> {
         ),
         automaticallyImplyLeading: false,
         actions: [
-          GestureDetector(
-            onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => const NotificationsScreen())),
-            child: Padding(
-              padding: const EdgeInsets.only(right: 15.0),
-              child: Icon(
-                Icons.notifications,
-                color: textColor,
-              ),
-            ),
-          )
+          // GestureDetector(
+          //   onTap: () => Navigator.push(
+          //       context,
+          //       MaterialPageRoute(
+          //           builder: (context) => const NotificationsScreen())),
+          //   child: Padding(
+          //     padding: const EdgeInsets.only(right: 15.0),
+          //     child: Icon(
+          //       Icons.notifications,
+          //       color: textColor,
+          //     ),
+          //   ),
+          // )
         ],
       ),
       body: ListView(
@@ -54,11 +56,8 @@ class _DashboardState extends State<Dashboard> {
             children: [
               // User profile section
               GestureDetector(
-                onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) =>
-                            ProfilePage(user: myCurrentUser))),
+                onTap: () => Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => ProfilePage())),
                 child: Card(
                   margin: const EdgeInsets.all(8.0),
                   elevation: 20,
@@ -89,12 +88,17 @@ class _DashboardState extends State<Dashboard> {
               ),
 
               GestureDetector(
-                onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => BorrowingPage(
-                              books: test_books,
-                            ))),
+                onTap: () async {
+                  List<Book>? books = await BookService().getBooks();
+                  if (books != null) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => BorrowingPage(books: books),
+                      ),
+                    );
+                  }
+                },
                 child: Card(
                   margin: const EdgeInsets.all(8.0),
                   elevation: 20,
@@ -123,6 +127,7 @@ class _DashboardState extends State<Dashboard> {
                   ),
                 ),
               ),
+
               GestureDetector(
                 onTap: () => Navigator.push(
                     context,

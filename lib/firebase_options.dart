@@ -66,6 +66,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '785957932311',
     projectId: 'book-sharing-application',
     storageBucket: 'book-sharing-application.appspot.com',
+    androidClientId: '785957932311-e9ob92sco1u7au7ss1nplp1sl7fpka5f.apps.googleusercontent.com',
+    iosClientId: '785957932311-111jhoju93t1bedimn8hqv3te67dtscn.apps.googleusercontent.com',
     iosBundleId: 'com.booksharing.booksharingServiceApp',
   );
 
@@ -75,6 +77,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '785957932311',
     projectId: 'book-sharing-application',
     storageBucket: 'book-sharing-application.appspot.com',
+    androidClientId: '785957932311-e9ob92sco1u7au7ss1nplp1sl7fpka5f.apps.googleusercontent.com',
+    iosClientId: '785957932311-111jhoju93t1bedimn8hqv3te67dtscn.apps.googleusercontent.com',
     iosBundleId: 'com.booksharing.booksharingServiceApp',
   );
 }

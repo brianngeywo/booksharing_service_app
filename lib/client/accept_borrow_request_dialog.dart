@@ -1,7 +1,7 @@
 import 'package:booksharing_service_app/client/book_reading_page.dart';
 import 'package:booksharing_service_app/constants.dart';
 import 'package:booksharing_service_app/models/notification.dart';
-import 'package:booksharing_service_app/test_datas.dart';
+import 'package:booksharing_service_app/static_datas.dart';
 import 'package:flutter/material.dart';
 
 class AcceptBorrowRequestDialog extends StatelessWidget {
@@ -41,7 +41,7 @@ class AcceptBorrowRequestDialog extends StatelessWidget {
             children: [
               MaterialButton(
                 onPressed: () {
-                  test_allowed_users.add(notification.requester);
+                  // test_allowed_users.add(notification.requester);
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text(
@@ -74,7 +74,7 @@ class AcceptBorrowRequestDialog extends StatelessWidget {
               MaterialButton(
                 onPressed: () {
                   print(notification.requester.name);
-                  test_allowed_users.remove(notification.requester);
+                  // test_allowed_users.remove(notification.requester);
                   for (var element in notification.book.allowedUsers) {
                     print(element.name);
                   }

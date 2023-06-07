@@ -1,9 +1,9 @@
-import 'package:booksharing_service_app/models/comment.dart';
+import 'package:booksharing_service_app/models/discussion_post_comment.dart';
 import 'package:booksharing_service_app/models/user_model.dart';
 
 class Rating {
   int stars;
-  Comment comment;
+  DiscussionPostComment comment;
   UserModel user;
 
   Rating({
@@ -25,7 +25,7 @@ class Rating {
   static Rating fromMap(Map<String, dynamic> map) {
     return Rating(
       stars: map['stars'],
-      comment: Comment.fromMap(map['comment']),
+      comment: DiscussionPostComment.fromMap(map['comment']),
       user: UserModel.fromMap(map['user']),
     );
   }

@@ -1,7 +1,7 @@
 import 'package:booksharing_service_app/models/book.dart';
-import 'package:booksharing_service_app/models/comment.dart';
+import 'package:booksharing_service_app/models/discussion_post_comment.dart';
 import 'package:booksharing_service_app/models/rating.dart';
-import 'package:booksharing_service_app/test_datas.dart';
+import 'package:booksharing_service_app/static_datas.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';

@@ -21,6 +21,15 @@ class BookService {
     return Book.fromMap(doc.data() as Map<String, dynamic>? ?? {});
   }
 
+  Future<List<Book>> getBooksByGenre(String genreId) async {
+    QuerySnapshot querySnapshot =
+        await _booksRef.where('genre.id', isEqualTo: genreId).get();
+    List<Book> books = querySnapshot.docs
+        .map((doc) => Book.fromMap(doc.data() as Map<String, dynamic>? ?? {}))
+        .toList();
+    return books;
+  }
+
   Future<void> addBook(Book book) async {
     await _booksRef.add(book.toMap());
   }
@@ -33,18 +42,3 @@ class BookService {
     await _booksRef.doc(id).delete();
   }
 }
-/*
-
-Here, we first import the required packages, including `cloud_firestore`, which provides the Firestore database service. We then define the `BookService` class and initialize it with a reference to the `books` collection in Firestore.
-
-The `getBooks` method retrieves all books in the collection by calling `get` on `_booksRef`, which returns a `QuerySnapshot`. We then map each document in the snapshot to a `Book` object using the `fromMap` factory constructor and return a list of these objects.
-
-The `getBookById` method retrieves a single book with the specified ID by calling `doc(id)` on `_booksRef`, which returns a `DocumentSnapshot`. We then create a `Book` object from the data in the snapshot using the `fromMap` factory constructor and return it.
-
-The `addBook` method adds a new book to the collection by calling `add` on `_booksRef` with the book's data as a map.
-
-The `updateBook` method updates an existing book in the collection by calling `update` on `_booksRef.doc(id)` with the updated book data as a map.
-
-The `deleteBook` method deletes a book with the specified ID from the collection by calling `delete` on `_booksRef.doc(id)`.
-
- */

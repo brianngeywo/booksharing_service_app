@@ -7,6 +7,9 @@ class UserModel {
   String address;
   // String password;
   Map<String, String> socialMediaLinks;
+  String bio;
+  String profilePictureUrl;
+  String coverImageUrl;
 
   UserModel({
     required this.id,
@@ -17,6 +20,9 @@ class UserModel {
     required this.address,
     // required this.password,
     required this.phoneNumber,
+    required this.bio,
+    required this.profilePictureUrl,
+    required this.coverImageUrl,
   });
 
   Map<String, dynamic> toMap() {
@@ -29,6 +35,9 @@ class UserModel {
       'address': address,
       // 'password': password,
       'socialMediaLinks': socialMediaLinks,
+      'bio': bio,
+      'profilePictureUrl': profilePictureUrl,
+      'coverImageUrl': coverImageUrl,
     };
   }
 
@@ -42,6 +51,9 @@ class UserModel {
       address: map['address'],
       // password: map['password'],
       socialMediaLinks: Map<String, String>.from(map['socialMediaLinks']),
+      bio: map['bio'],
+      profilePictureUrl: map['profilePictureUrl'],
+      coverImageUrl: map['coverImageUrl'],
     );
   }
 }

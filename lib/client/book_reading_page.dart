@@ -1,15 +1,13 @@
 import 'dart:math';
 
+import 'package:booksharing_service_app/services/borrow_book_service.dart';
 import 'package:booksharing_service_app/models/book.dart';
 import 'package:booksharing_service_app/client/book_rating_dialog.dart';
 import 'package:booksharing_service_app/constants.dart';
-import 'package:booksharing_service_app/models/notification.dart';
-import 'package:booksharing_service_app/client/rating_widget.dart';
-import 'package:booksharing_service_app/services/auth_service.dart';
-import 'package:booksharing_service_app/services/user_service.dart';
-import 'package:booksharing_service_app/test_datas.dart';
+import 'package:booksharing_service_app/static_datas.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
 
 class BookReadingPage extends StatefulWidget {
@@ -22,20 +20,30 @@ class BookReadingPage extends StatefulWidget {
 }
 
 class _BookReadingPageState extends State<BookReadingPage> {
-  String borrow_book_button_text = "Borrow this book";
+  String borrowBookButtonText = "Download this book";
+
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    if (widget.book.allowedUsers
-        .where((element) => element.id == myCurrentUser.id)
-        .isNotEmpty) {
-      for (var element in widget.book.allowedUsers) {
-        print(element.name);
+  }
+
+  Future<void> _launchFileUrl() async {
+    if (widget.book.fileUrl != null && widget.book.fileUrl!.isNotEmpty) {
+      if (await canLaunch(widget.book.fileUrl!)) {
+        await launch(widget.book.fileUrl!);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              "Failed to open file",
+              style: TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Colors.redAccent,
+            closeIconColor: Colors.white,
+            duration: Duration(seconds: 3),
+          ),
+        );
       }
-      setState(() {
-        borrow_book_button_text = "Download Book";
-      });
     }
   }
 
@@ -49,60 +57,32 @@ class _BookReadingPageState extends State<BookReadingPage> {
             backgroundColor: MaterialStateProperty.all(textColor),
           ),
           onPressed: () {
-            UserService().borrowBook(widget.book.id);
-            if (widget.book.allowedUsers
-                .where((element) => element.id == myCurrentUser.id)
-                .isNotEmpty) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(
-                    "Starting download...",
-                    style: TextStyle(
-                      color: Colors.white,
-                    ),
+            // Borrow a book
+            BorrowBookService().borrowBook(
+                widget.book.id, '6ffeb1ba-257f-46fb-a260-86334baef9a6');
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  "File will be downloaded shortly!",
+                  style: TextStyle(
+                    color: Colors.white,
                   ),
-                  duration: Duration(seconds: 2),
-                  backgroundColor: Colors.green,
                 ),
-              );
-            } else {
-              //add new notification
-              test_notifications.add(NotificationClass(
-                id: Uuid().v4(),
-                message: '${widget.book.title} borrow request',
-                time: DateTime.now(),
-                book: widget.book,
-                opened: false,
-                requester: myCurrentUser,
-              ));
-              for (var element in widget.book.allowedUsers) {
-                print(element.name);
-              }
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(
-                    "Request sent successfully!",
-                    style: TextStyle(
-                      color: Colors.white,
-                    ),
-                  ),
-                  duration: Duration(seconds: 2),
-                  backgroundColor: Colors.green,
-                ),
-              );
-              setState(() {
-                borrow_book_button_text = "Pending approval";
-              });
-            }
+                duration: Duration(seconds: 2),
+                backgroundColor: Colors.green,
+              ),
+            );
+            _launchFileUrl();
           },
           child: Container(
             height: 30,
             margin: const EdgeInsets.all(8.0),
             child: Center(
               child: Text(
-                borrow_book_button_text,
+                borrowBookButtonText,
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.black),
+                style: const TextStyle(color: Colors.black),
               ),
             ),
           ),
@@ -116,16 +96,18 @@ class _BookReadingPageState extends State<BookReadingPage> {
           ),
         ),
         actions: [
-          IconButton(
-            icon: Icon(
-              Icons.share_outlined,
-              color: textColor,
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: IconButton(
+              onPressed: () {
+                _launchFileUrl();
+              },
+              icon: Icon(
+                Icons.download,
+                color: textColor,
+              ),
             ),
-            onPressed: () {
-              // Share the book on social media.
-            },
           ),
-          const SizedBox(width: 10),
         ],
       ),
       body: Column(
@@ -145,43 +127,29 @@ class _BookReadingPageState extends State<BookReadingPage> {
           const SizedBox(height: 16.0),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.book.title,
-                  style: TextStyle(
-                    color: textColor,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 6.0),
-                Text(
-                  widget.book.author,
-                  style: Theme.of(context).textTheme.subtitle1,
-                ),
-                const SizedBox(height: 6.0),
-                Text(
-                  widget.book.genre.name,
-                  style: Theme.of(context).textTheme.subtitle1,
-                ),
-                const SizedBox(height: 8.0),
-                my_divider,
-                const SizedBox(height: 8.0),
-                Text(
-                  "Abstract",
-                  style: TextStyle(
-                    fontSize: 20,
-                    color: textColor,
-                  ),
-                ),
-                const SizedBox(height: 8.0),
-                Text(
-                  widget.book.description,
-                  style: Theme.of(context).textTheme.bodyText1,
-                ),
-              ],
+            child: Text(
+              widget.book.title.toUpperCase(),
+              style: TextStyle(
+                color: textColor,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          const SizedBox(height: 6.0),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Text(
+              widget.book.author,
+              style: Theme.of(context).textTheme.subtitle1,
+            ),
+          ),
+          const SizedBox(height: 6.0),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Text(
+              widget.book.genre.name,
+              style: Theme.of(context).textTheme.subtitle1,
             ),
           ),
           const SizedBox(height: 8.0),
@@ -190,14 +158,31 @@ class _BookReadingPageState extends State<BookReadingPage> {
             child: my_divider,
           ),
           const SizedBox(height: 8.0),
-          MyRatingWidget(
-            ratings: test_ratings,
-            currentUser: test_users[1],
-            book: widget.book,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Text(
+              "Abstract",
+              style: TextStyle(
+                fontSize: 20,
+                color: textColor,
+              ),
+            ),
           ),
-          // const SizedBox(height: 16.0),
-
-          const SizedBox(height: 32),
+          const SizedBox(height: 8.0),
+          my_divider,
+          const SizedBox(height: 8.0),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Text(
+              widget.book.description,
+              style: Theme.of(context).textTheme.bodyText1,
+            ),
+          ),
+          const SizedBox(height: 8.0),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: my_divider,
+          ),
         ],
       ),
     );

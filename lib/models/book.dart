@@ -12,6 +12,7 @@ class Book {
   UserModel postedBy;
   List<Rating> ratings;
   List<UserModel> allowedUsers;
+  String? fileUrl;
 
   Book({
     required this.ratings,
@@ -23,6 +24,7 @@ class Book {
     required this.postedBy,
     required this.coverUrl,
     required this.allowedUsers,
+    required this.fileUrl,
   });
   Book.fromMap(Map<String, dynamic> map)
       : id = map['id'],
@@ -37,7 +39,8 @@ class Book {
             .toList(),
         allowedUsers = (map['allowedUsers'] as List<dynamic>)
             .map((user) => UserModel.fromMap(user))
-            .toList();
+            .toList(),
+        fileUrl = map['fileUrl'];
 
   Map<String, dynamic> toMap() => {
         'id': id,
@@ -49,5 +52,6 @@ class Book {
         'postedBy': postedBy.toMap(),
         'ratings': ratings.map((rating) => rating.toMap()).toList(),
         'allowedUsers': allowedUsers.map((user) => user.toMap()).toList(),
+        'fileUrl': fileUrl,
       };
 }

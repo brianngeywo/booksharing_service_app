@@ -12,7 +12,7 @@ class BookCard extends StatelessWidget {
     return Card(
       elevation: 10,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      margin: const EdgeInsets.all(7.0),
+      margin: const EdgeInsets.symmetric(vertical: 7.0, horizontal: 24.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[

@@ -1,15 +1,21 @@
+import 'dart:io';
 import 'dart:math';
 
 import 'package:booksharing_service_app/models/book.dart';
+import 'package:booksharing_service_app/models/user_model.dart';
 import 'package:booksharing_service_app/services/book_service.dart';
 import 'package:booksharing_service_app/constants.dart';
 import 'package:booksharing_service_app/models/genre.dart';
-import 'package:booksharing_service_app/test_datas.dart';
+import 'package:booksharing_service_app/services/firebase_storage_service.dart';
+import 'package:booksharing_service_app/static_datas.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class UploadBookPage extends StatefulWidget {
-  const UploadBookPage({super.key});
+  const UploadBookPage({Key? key}) : super(key: key);
 
   @override
   _UploadBookPageState createState() => _UploadBookPageState();
@@ -18,24 +24,109 @@ class UploadBookPage extends StatefulWidget {
 class _UploadBookPageState extends State<UploadBookPage> {
   final _formKey = GlobalKey<FormState>();
 
-  /*
- This code defines four private variables: _title, _author, _genre, and _abstract. Each variable is marked as 'late',
- which means its value can be set later but must be set before it is used. The data types of _title, _author, and
- _abstract are String, while the data type of _genre is a custom data type called Genre. Genre is likely defined elsewhere
- in the codebase.
-*/
-  late String? _title;
-  late String? _author;
-  late Genre? _genre;
-  late String? _abstract;
+  late String _title;
+  late String _author;
+  late Genre _genre;
+  late String _abstract;
+  late String? _fileUrl;
+  late String _coverImageUrl;
+
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     _genre = test_genres[0];
     _title = "";
     _author = "";
     _abstract = "";
+    _fileUrl = null;
+    _coverImageUrl = "";
+  }
+
+  Future<void> _pickBookFile() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf', 'epub'], // Add more extensions if needed
+    );
+
+    if (result != null) {
+      setState(() {
+        _fileUrl = result.files.single.path;
+      });
+    }
+  }
+
+  Future<void> _pickCoverImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      final file = File(pickedFile.path);
+
+      try {
+        final imageUrl = await FirebaseStorageService.uploadFile(file);
+        setState(() {
+          _coverImageUrl = imageUrl;
+        });
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Failed to upload book cover"),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _uploadBook() async {
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
+
+      // Generate a random ID for the book
+      String bookId = const Uuid().v4();
+
+      // Create a new Book object
+      Book book = Book(
+        id: bookId,
+        title: _title,
+        author: _author,
+        genre: _genre,
+        postedBy: test_user,
+        ratings: [],
+        description: _abstract,
+        coverUrl: _coverImageUrl,
+        allowedUsers: [],
+        fileUrl: _fileUrl,
+      );
+
+      // Upload the book file to Firebase Storage
+      if (_fileUrl != null) {
+        File file = File(_fileUrl!);
+        try {
+          String fileUrl = await FirebaseStorageService.uploadFile(file);
+          book.fileUrl = fileUrl;
+        } catch (e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Failed to upload book file"),
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+      }
+
+      // Add the book to Firestore
+      BookService().addBook(book);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Book uploaded successfully!"),
+          duration: Duration(seconds: 3),
+        ),
+      );
+      // Navigate back to the previous screen
+      Navigator.pop(context);
+    }
   }
 
   @override
@@ -103,9 +194,12 @@ class _UploadBookPageState extends State<UploadBookPage> {
                   }).toList(),
                 ),
                 TextFormField(
-                  minLines: 1,
+                  minLines: 15,
                   maxLines: null,
-                  decoration: const InputDecoration(labelText: 'Abstract'),
+                  decoration: const InputDecoration(
+                    labelText: 'Abstract',
+                    alignLabelWithHint: true,
+                  ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter a book abstract';
@@ -118,47 +212,42 @@ class _UploadBookPageState extends State<UploadBookPage> {
                 ),
                 const SizedBox(height: 16),
                 ElevatedButton(
+                  onPressed: _pickCoverImage,
+                  child: const Text(
+                    'Upload Book Cover',
+                    style: TextStyle(color: Colors.black54),
+                  ),
+                ),
+                if (_coverImageUrl != null && _coverImageUrl.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Image.network(
+                      _coverImageUrl!,
+                      height: 200,
+                    ),
+                  ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: _pickBookFile,
+                  child: const Text(
+                    'Attach Book File',
+                    style: TextStyle(color: Colors.black54),
+                  ),
+                ),
+                if (_fileUrl != null && _fileUrl!.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Text(
+                      'Attached File: $_fileUrl',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                const SizedBox(height: 16),
+                ElevatedButton(
                   style: ButtonStyle(
                     backgroundColor: MaterialStateProperty.all(textColor),
                   ),
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      _formKey.currentState!.save();
-
-                      // Generate a random ID for the book
-                      String bookId = const Uuid().v4();
-
-                      // Create a new Book object
-                      Book book = Book(
-                        id: bookId,
-                        title: _title!,
-                        author: _author!,
-                        genre: _genre!,
-                        postedBy:
-                            test_users[Random().nextInt(test_users.length)],
-                        ratings: [], description: _abstract!,
-                        coverUrl:
-                            'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1374&q=80',
-                        allowedUsers:
-                            test_allowed_users, // Replace with the actual user ID
-                      );
-                      BookService().addBook(book);
-
-                      // Call the onBookUploaded function and pass in the new book object
-                      setState(() {
-                        test_books.add(book);
-                      });
-
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("Book uploaded successfully!"),
-                          duration: Duration(seconds: 3),
-                        ),
-                      );
-                      // Navigate back to the previous screen
-                      Navigator.pop(context);
-                    }
-                  },
+                  onPressed: _uploadBook,
                   child: const Text(
                     'Upload Book',
                     style: TextStyle(color: Colors.black54),

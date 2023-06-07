@@ -1,6 +1,6 @@
 import 'package:booksharing_service_app/client/discussion_group_page.dart';
 import 'package:booksharing_service_app/constants.dart';
-import 'package:booksharing_service_app/test_datas.dart';
+import 'package:booksharing_service_app/static_datas.dart';
 import 'package:flutter/material.dart';
 
 class DiscussionGroupDashboard extends StatefulWidget {
@@ -28,22 +28,6 @@ class _DiscussionGroupDashboardState extends State<DiscussionGroupDashboard> {
       body: ListView(
         // physics: const NeverScrollableScrollPhysics(),
         children: [
-          // search
-          Container(
-            padding: EdgeInsets.all(16),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Search for a group',
-                prefixIcon: Icon(
-                  Icons.search,
-                  color: textColor,
-                ),
-              ),
-              onChanged: (value) {
-                // Code to filter books based on search query
-              },
-            ),
-          ),
           SingleChildScrollView(
             physics: const NeverScrollableScrollPhysics(),
             child: GridView.count(

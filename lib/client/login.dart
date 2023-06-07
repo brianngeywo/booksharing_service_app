@@ -2,7 +2,7 @@ import 'package:booksharing_service_app/client/dashboard.dart';
 import 'package:booksharing_service_app/constants.dart';
 import 'package:booksharing_service_app/models/user_model.dart';
 import 'package:booksharing_service_app/services/auth_service.dart';
-import 'package:booksharing_service_app/test_datas.dart';
+import 'package:booksharing_service_app/static_datas.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 

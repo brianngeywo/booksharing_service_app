@@ -2,7 +2,7 @@ import 'package:booksharing_service_app/client/accept_borrow_request_dialog.dart
 import 'package:booksharing_service_app/client/book_reading_page.dart';
 import 'package:booksharing_service_app/constants.dart';
 import 'package:booksharing_service_app/models/notification.dart';
-import 'package:booksharing_service_app/test_datas.dart';
+import 'package:booksharing_service_app/static_datas.dart';
 import 'package:flutter/material.dart';
 
 class NotificationListCard extends StatefulWidget {
