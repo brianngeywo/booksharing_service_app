@@ -14,21 +14,6 @@ class AllBooksPage extends StatefulWidget {
 }
 
 class _AllBooksPageState extends State<AllBooksPage> {
-  UserModel? _user;
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchUserDetails();
-  }
-
-  void _fetchUserDetails() async {
-    UserModel userDetails = await AuthService().getCurrentUser();
-    setState(() {
-      _user = userDetails;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -43,7 +28,7 @@ class _AllBooksPageState extends State<AllBooksPage> {
       ),
       body: Center(
         child: FutureBuilder<List<Book>>(
-          future: BookService().getBooksByUserId(_user!.id),
+          future: BookService().getBooks(),
           builder: (context, snapshot) {
             if (snapshot.hasData) {
               final uploadedBooks = snapshot.data!;
