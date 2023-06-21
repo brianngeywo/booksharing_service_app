@@ -1,10 +1,10 @@
+import 'dart:js_interop';
+
 import 'package:booksharing_service_app/client/dashboard.dart';
 import 'package:booksharing_service_app/client/signup.dart';
 import 'package:booksharing_service_app/constants.dart';
 import 'package:booksharing_service_app/services/auth_service.dart';
 import 'package:flutter/material.dart';
-
-import '../services/user_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -18,14 +18,15 @@ class _LoginScreenState extends State<LoginScreen> {
   String _email = "";
   String _password = "";
 
-  Future<void> _checkLoginStatus() async {
-    bool isLoggedIn = await AuthService().isLoggedIn();
+  bool _checkLoginStatus() {
+    bool isLoggedIn = AuthService().isLoggedIn();
     if (isLoggedIn) {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const Dashboard()),
       );
     }
+    return isLoggedIn;
   }
 
   @override
@@ -72,7 +73,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       letterSpacing: 2.0,
                       shadows: [
                         Shadow(
-                          offset: Offset(2.0, 2.0),
+                          offset: const Offset(2.0, 2.0),
                           blurRadius: 3.0,
                           color: Colors.grey.withOpacity(0.5),
                         ),
@@ -125,11 +126,23 @@ class _LoginScreenState extends State<LoginScreen> {
                     if (_formKey.currentState!.validate()) {
                       _formKey.currentState?.save();
                       // Perform login operation using _email and _password
-                      AuthService().loginUser(_email, _password).then((value) =>
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => const Dashboard())));
+                      var user = AuthService().loginUser(_email, _password);
+                      if (!user.isNull) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const Dashboard(),
+                          ),
+                        );
+                      } else {
+                        const SnackBar(
+                          content: Text(
+                            "Login failed!",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          backgroundColor: Colors.redAccent,
+                        );
+                      }
                     }
                   },
                   child: const Text(
@@ -139,7 +152,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const Padding(
                   padding: EdgeInsets.all(8.0),
-                  child: Text("Sign up"),
+                  child: Text("Or create new account"),
                 ),
                 my_divider,
                 Padding(

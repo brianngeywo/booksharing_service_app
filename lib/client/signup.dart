@@ -35,14 +35,15 @@ class _SignupScreenState extends State<SignupScreen> {
     });
   }
 
-  Future<void> _checkLoginStatus() async {
-    bool isLoggedIn = await AuthService().isLoggedIn();
+  bool _checkLoginStatus() {
+    bool isLoggedIn = AuthService().isLoggedIn();
     if (isLoggedIn) {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const Dashboard()),
       );
     }
+    return isLoggedIn;
   }
 
   Future<void> _pickProfileImage() async {
@@ -84,6 +85,9 @@ class _SignupScreenState extends State<SignupScreen> {
       } catch (e) {
         print('Error uploading images: $e');
         // Handle error
+        SnackBar(
+            content: Text('Error uploading images: $e'),
+            backgroundColor: Colors.redAccent);
       }
     }
   }

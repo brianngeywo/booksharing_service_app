@@ -11,11 +11,9 @@ import 'package:booksharing_service_app/client/upload_book.dart';
 import 'package:booksharing_service_app/models/Navigation_item.dart';
 import 'package:booksharing_service_app/models/book.dart';
 import 'package:booksharing_service_app/models/genre.dart';
-import 'package:booksharing_service_app/models/user_model.dart';
 import 'package:booksharing_service_app/services/book_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:uuid/uuid.dart';
 
 DateFormat formatter = DateFormat('yMMMd');
 Random random = Random();
