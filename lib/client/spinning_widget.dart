@@ -12,7 +12,7 @@ class SpinningWidget extends StatelessWidget {
         heightFactor: 0.5, // Adjust the height as needed
         child: Center(
           child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(textColor),
+            valueColor: AlwaysStoppedAnimation<Color>(textColor!),
           ),
         ),
       ),

@@ -147,7 +147,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   },
                   child: const Text(
                     "Login",
-                    style: TextStyle(color: Colors.black54),
+                    style: TextStyle(color: Colors.white),
                   ),
                 ),
                 const Padding(
@@ -168,7 +168,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     },
                     child: const Text(
                       "Create Account",
-                      style: TextStyle(color: Colors.black54),
+                      style: TextStyle(color: Colors.white),
                     ),
                   ),
                 ),
